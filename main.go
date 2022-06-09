@@ -21,17 +21,21 @@ type League struct {
 }
 
 type Elaboration struct {
-	Type []Type `json:"tipovi"`
-	Name []int  `json:"ponude"`
+	Type   []Type `json:"tipovi"`
+	Offers []int  `json:"ponude"`
 }
 
 type Type struct {
-	Name string `json:"Naziv"`
+	Name string `json:"naziv"`
 }
 
-// Creating GetOfferResponse Struct
+//Creating GetOfferResponse Struct
 
-type GetOfferResponse struct {
+type GetOfferResponse []Offer
+
+// type GetOfferResponse []Offers
+
+type Offer struct {
 	Number        string    `json:"broj"`
 	TVchannel     string    `json:"tv_kanal"`
 	ID            int       `json:"id"`
@@ -46,48 +50,35 @@ type Rate struct {
 	Name  string  `json:"naziv"`
 }
 
-func main() {
-	// Getting First JSON
+var urlLeagues = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/lige.json"
+var urlOffers = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.json"
 
-	resp, err := http.Get("https://minus5-dev-test.s3.eu-central-1.amazonaws.com/lige.json")
+func getJSON(URL string, structure interface{}) {
+	res, err := http.Get(URL)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	defer resp.Body.Close()
-
-	leaugesBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var leagues GetLeagueResponse
-	jsonErrLeagues := json.Unmarshal(leaugesBody, &leagues)
-	if jsonErrLeagues != nil {
-		log.Fatal("Error unmarshalling json data:", err)
-	}
-	fmt.Println(leagues)
-
-	fmt.Println("#######################################################################################################")
-
-	//Getting second JSON
-
-	res, err := http.Get("https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	defer res.Body.Close()
 
-	offersBody, err := ioutil.ReadAll(res.Body)
+	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
-	var offers []GetOfferResponse
-	jsonErrPonude := json.Unmarshal(offersBody, &offers)
-	if jsonErrPonude != nil {
-		log.Fatal(jsonErrPonude)
+	jsonErr := json.Unmarshal(resBody, structure)
+	if jsonErr != nil {
+		log.Fatal(jsonErr)
 	}
-	fmt.Print(offers)
+}
+
+func main() {
+
+	var leagues GetLeagueResponse
+	var offers GetOfferResponse
+
+	getJSON(urlLeagues, &leagues)
+	fmt.Println(leagues)
+
+	getJSON(urlOffers, &offers)
+	fmt.Println(offers)
 }
