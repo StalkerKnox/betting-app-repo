@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -40,18 +41,18 @@ type Type struct {
 type GetOfferResponse []Offer
 
 type Offer struct {
-	Number        string    `json:"broj"`
+	Number        string    `json:"broj" validate:"required"`
 	TVchannel     string    `json:"tv_kanal"`
 	ID            int       `json:"id"`
-	Title         string    `json:"naziv"`
-	HasStatistics bool      `json:"ima_statistiku"`
-	Time          time.Time `json:"vrijeme"`
-	Rates         []Rate    `json:"tecajevi"`
+	Title         string    `json:"naziv" validate:"required"`
+	HasStatistics bool      `json:"ima_statistiku" validate:"required"`
+	Time          time.Time `json:"vrijeme" validate:"required"`
+	Rates         []Rate    `json:"tecajevi" validate:"required"`
 }
 
 type Rate struct {
-	Rate float64 `json:"tecaj"`
-	Name string  `json:"naziv"`
+	Rate float64 `json:"tecaj" validate:"required"`
+	Name string  `json:"naziv" validate:"required"`
 }
 
 // Defining structure variables to store parsed JSON
@@ -111,7 +112,14 @@ func addNewOffer(w http.ResponseWriter, r *http.Request) {
 	var offer Offer
 	json.NewDecoder(r.Body).Decode(&offer)
 
+	validate := validator.New()
+	err := validate.Struct(offer)
 	offer.ID = rand.Intn(10000000)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	offers = append(offers, offer)
 	json.NewEncoder(w).Encode(offer)
 }
