@@ -14,23 +14,21 @@ import (
 )
 
 // Impementing url variables to read from
-
 var urlLeagues = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/lige.json"
 var urlOffers = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.json"
 
 // Creating GetLeagueResponse Struct
-
 type GetLeagueResponse struct {
-	League []League `json:"lige"`
+	Leagues []League `json:"lige"`
 }
 
 type League struct {
-	Title       string        `json:"naziv"`
-	Elaboration []Elaboration `json:"razrade"`
+	Title        string        `json:"naziv"`
+	Elaborations []Elaboration `json:"razrade"`
 }
 
 type Elaboration struct {
-	Type   []Type `json:"tipovi"`
+	Types  []Type `json:"tipovi"`
 	Offers []int  `json:"ponude"`
 }
 
@@ -39,7 +37,6 @@ type Type struct {
 }
 
 //Creating GetOfferResponse Struct
-
 type GetOfferResponse []Offer
 
 type Offer struct {
@@ -49,71 +46,71 @@ type Offer struct {
 	Title         string    `json:"naziv"`
 	HasStatistics bool      `json:"ima_statistiku"`
 	Time          time.Time `json:"vrijeme"`
-	Rate          []Rate    `json:"tecajevi"`
+	Rates         []Rate    `json:"tecajevi"`
 }
 
 type Rate struct {
-	Rates float64 `json:"tecaj"`
-	Name  string  `json:"naziv"`
+	Rate float64 `json:"tecaj"`
+	Name string  `json:"naziv"`
 }
 
 // Defining structure variables to store parsed JSON
-
 var leagues GetLeagueResponse
 var offers GetOfferResponse
 
 // Parsing JSON
-
-func getJSON(URL string, structure interface{}) {
+func getJSON(URL string, structure interface{}) error {
 	res, err := http.Get(URL)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer res.Body.Close()
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	jsonErr := json.Unmarshal(resBody, structure)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
+	return json.Unmarshal(resBody, structure)
 }
 
 // GET leagues
-
 func getLeagues(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(leagues)
+	err := json.NewEncoder(w).Encode(leagues)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // GET offers / implemented just for checking POST method
-
 func getOffers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(offers)
 }
 
 // GET offers by ID
-
 func getOfferbyID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
 	for _, item := range offers {
-		id := strconv.Itoa(item.ID)
-		if id == params["id"] {
+		if item.ID == id {
 			json.NewEncoder(w).Encode(item)
+			return
 		}
 	}
+	w.WriteHeader(http.StatusNotFound)
 }
 
 // ADD new offer (POST method)
-
 func addNewOffer(w http.ResponseWriter, r *http.Request) {
 	var offer Offer
-	_ = json.NewDecoder(r.Body).Decode(&offer)
+	json.NewDecoder(r.Body).Decode(&offer)
+
 	offer.ID = rand.Intn(10000000)
 	offers = append(offers, offer)
 	json.NewEncoder(w).Encode(offer)
@@ -121,10 +118,18 @@ func addNewOffer(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	getJSON(urlLeagues, &leagues)
+	errLeagues := getJSON(urlLeagues, &leagues)
+	if errLeagues != nil {
+		log.Fatal(errLeagues)
+	}
+
 	fmt.Println(leagues)
 
-	getJSON(urlOffers, &offers)
+	errOffers := getJSON(urlOffers, &offers)
+	if errOffers != nil {
+		log.Fatal(errOffers)
+	}
+
 	fmt.Println(offers)
 
 	//Init router
