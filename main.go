@@ -97,6 +97,8 @@ func getOfferbyID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bad request"))
+		return
 	}
 	for _, item := range offers {
 		if item.ID == id {
@@ -105,6 +107,7 @@ func getOfferbyID(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(http.StatusNotFound)
+	w.Write([]byte("Offer does not exists"))
 }
 
 // ADD new offer (POST method)
@@ -114,12 +117,12 @@ func addNewOffer(w http.ResponseWriter, r *http.Request) {
 
 	validate := validator.New()
 	err := validate.Struct(offer)
-	offer.ID = rand.Intn(10000000)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bad input by user"))
 		return
 	}
-
+	offer.ID = rand.Intn(10000000)
 	offers = append(offers, offer)
 	json.NewEncoder(w).Encode(offer)
 }
