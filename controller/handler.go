@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"booking-app/models"
+	"betting-app/models"
 	"encoding/json"
 	"math/rand"
 	"net/http"

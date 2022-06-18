@@ -1,4 +1,4 @@
-module booking-app
+module betting-app
 
 go 1.18
 

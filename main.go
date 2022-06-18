@@ -1,9 +1,9 @@
 package main
 
 import (
-	"booking-app/controller"
-	"booking-app/models"
-	"booking-app/structure"
+	"betting-app/controller"
+	"betting-app/models"
+	"betting-app/structure"
 	"fmt"
 	"log"
 	"net/http"
