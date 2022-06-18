@@ -1,16 +1,13 @@
 package main
 
 import (
-	"encoding/json"
+	"booking-app/controller"
+	"booking-app/models"
+	"booking-app/structure"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
-	"strconv"
-	"time"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 )
 
@@ -18,130 +15,23 @@ import (
 var urlLeagues = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/lige.json"
 var urlOffers = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.json"
 
-// Creating GetLeagueResponse Struct
-type GetLeagueResponse struct {
-	Leagues []League `json:"lige"`
-}
-
-type League struct {
-	Title        string        `json:"naziv"`
-	Elaborations []Elaboration `json:"razrade"`
-}
-
-type Elaboration struct {
-	Types  []Type `json:"tipovi"`
-	Offers []int  `json:"ponude"`
-}
-
-type Type struct {
-	Name string `json:"naziv"`
-}
-
-//Creating GetOfferResponse Struct
-type GetOfferResponse []Offer
-
-type Offer struct {
-	Number        string    `json:"broj" validate:"required"`
-	TVchannel     string    `json:"tv_kanal"`
-	ID            int       `json:"id"`
-	Title         string    `json:"naziv" validate:"required"`
-	HasStatistics bool      `json:"ima_statistiku" validate:"required"`
-	Time          time.Time `json:"vrijeme" validate:"required"`
-	Rates         []Rate    `json:"tecajevi" validate:"required"`
-}
-
-type Rate struct {
-	Rate float64 `json:"tecaj" validate:"required"`
-	Name string  `json:"naziv" validate:"required"`
-}
-
-// Defining structure variables to store parsed JSON
-var leagues GetLeagueResponse
-var offers GetOfferResponse
-
-// Parsing JSON
-func getJSON(URL string, structure interface{}) error {
-	res, err := http.Get(URL)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	return json.Unmarshal(resBody, structure)
-}
-
-// GET leagues
-func getLeagues(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(leagues)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-// GET offers / implemented just for checking POST method
-func getOffers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(offers)
-}
-
-// GET offers by ID
-func getOfferbyID(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Bad request"))
-		return
-	}
-	for _, item := range offers {
-		if item.ID == id {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
-	}
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Offer does not exists"))
-}
-
-// ADD new offer (POST method)
-func addNewOffer(w http.ResponseWriter, r *http.Request) {
-	var offer Offer
-	json.NewDecoder(r.Body).Decode(&offer)
-
-	validate := validator.New()
-	err := validate.Struct(offer)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Bad input by user"))
-		return
-	}
-	offer.ID = rand.Intn(10000000)
-	offers = append(offers, offer)
-	json.NewEncoder(w).Encode(offer)
-}
-
 func main() {
 
-	errLeagues := getJSON(urlLeagues, &leagues)
+	errLeagues := structure.GetJSON(urlLeagues, &models.Leagues)
 	if errLeagues != nil {
 		log.Fatal(errLeagues)
 	}
 
-	fmt.Println(leagues)
+	fmt.Println(models.Leagues)
 
-	errOffers := getJSON(urlOffers, &offers)
+	fmt.Println("#################################################################################")
+
+	errOffers := structure.GetJSON(urlOffers, &models.Offers)
 	if errOffers != nil {
 		log.Fatal(errOffers)
 	}
 
-	fmt.Println(offers)
+	fmt.Println(models.Offers)
 
 	//Init router
 
@@ -149,10 +39,10 @@ func main() {
 
 	// Handling requests
 
-	router.HandleFunc("/leagues", getLeagues).Methods("GET")
-	router.HandleFunc("/offers/{id}", getOfferbyID).Methods("GET")
-	router.HandleFunc("/offers", getOffers).Methods("GET")
-	router.HandleFunc("/offers", addNewOffer).Methods("POST")
+	router.HandleFunc("/leagues", controller.GetLeagues).Methods("GET")
+	router.HandleFunc("/offers/{id}", controller.GetOfferbyID).Methods("GET")
+	router.HandleFunc("/offers", controller.GetOffers).Methods("GET")
+	router.HandleFunc("/offers", controller.AddNewOffer).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
