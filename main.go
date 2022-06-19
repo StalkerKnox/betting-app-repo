@@ -1,9 +1,9 @@
 package main
 
 import (
-	"betting-app/controller"
+	"betting-app/handler"
+	"betting-app/helper"
 	"betting-app/models"
-	"betting-app/structure"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,7 +17,7 @@ var urlOffers = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.js
 
 func main() {
 
-	errLeagues := structure.GetJSON(urlLeagues, &models.Leagues)
+	errLeagues := helper.GetJSON(urlLeagues, &models.Leagues)
 	if errLeagues != nil {
 		log.Fatal(errLeagues)
 	}
@@ -26,7 +26,7 @@ func main() {
 
 	fmt.Println("#################################################################################")
 
-	errOffers := structure.GetJSON(urlOffers, &models.Offers)
+	errOffers := helper.GetJSON(urlOffers, &models.Offers)
 	if errOffers != nil {
 		log.Fatal(errOffers)
 	}
@@ -39,10 +39,10 @@ func main() {
 
 	// Handling requests
 
-	router.HandleFunc("/leagues", controller.GetLeagues).Methods("GET")
-	router.HandleFunc("/offers/{id}", controller.GetOfferbyID).Methods("GET")
-	router.HandleFunc("/offers", controller.GetOffers).Methods("GET")
-	router.HandleFunc("/offers", controller.AddNewOffer).Methods("POST")
+	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
+	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
+	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
+	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

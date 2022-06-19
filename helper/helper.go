@@ -1,4 +1,4 @@
-package structure
+package helper
 
 import (
 	"encoding/json"
