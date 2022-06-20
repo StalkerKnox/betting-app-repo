@@ -1,6 +1,7 @@
 package main
 
 import (
+	"betting-app/database"
 	"betting-app/handler"
 	"betting-app/helper"
 	"betting-app/models"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
@@ -43,6 +45,8 @@ func main() {
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
 	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
+
+	database.ConnectDB()
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
