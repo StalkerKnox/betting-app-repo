@@ -25,18 +25,19 @@ type Type struct {
 type GetOfferResponse []Offer
 
 type Offer struct {
-	Number        string    `json:"broj" validate:"required"`
-	TVchannel     string    `json:"tv_kanal"`
-	ID            int       `json:"id"`
-	Title         string    `json:"naziv" validate:"required"`
-	HasStatistics bool      `json:"ima_statistiku" validate:"required"`
-	Time          time.Time `json:"vrijeme" validate:"required"`
+	Number        string    `json:"broj" db:"number" validate:"required"`
+	TVchannel     string    `json:"tv_kanal" db:"tv_channel"`
+	ID            int       `json:"id" db:"offer_id"`
+	Title         string    `json:"naziv" db:"title" validate:"required"`
+	HasStatistics bool      `json:"ima_statistiku" db:"has_statistics" validate:"required"`
+	Time          time.Time `json:"vrijeme" db:"time" validate:"required"`
 	Rates         []Rate    `json:"tecajevi" validate:"required"`
 }
 
 type Rate struct {
-	Rate float64 `json:"tecaj" validate:"required"`
-	Name string  `json:"naziv" validate:"required"`
+	OfferID int     `db:"offer_id"`
+	Rate    float64 `json:"tecaj" db:"rate" validate:"required"`
+	Name    string  `json:"naziv" db:"name" validate:"required"`
 }
 
 // Defining structure variables to store parsed JSON
