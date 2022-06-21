@@ -32,11 +32,13 @@ type Offer struct {
 	HasStatistics bool      `json:"ima_statistiku" db:"has_statistics" validate:"required"`
 	Time          time.Time `json:"vrijeme" db:"time" validate:"required"`
 	Rates         []Rate    `json:"tecajevi" validate:"required"`
+	Id_rate       int       `db:"id_rate"`
 }
 
 type Rate struct {
-	Rate float64 `json:"tecaj" db:"rate" validate:"required"`
-	Name string  `json:"naziv" db:"name" validate:"required"`
+	Id_rate int     `db:"id_rate"`
+	Rate    float64 `json:"tecaj" db:"rate" validate:"required"`
+	Name    string  `json:"naziv" db:"name" validate:"required"`
 }
 
 // Defining structure variables to store parsed JSON
