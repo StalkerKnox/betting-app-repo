@@ -16,19 +16,16 @@ func ConnectDB() {
 	}
 
 	for _, offer := range models.Offers {
-		res, insertError := db.NamedExec(`INSERT INTO offers (number, tv_channel, id, title, has_statistics, time) VALUES (:number, :tv_channel, :id, :title, :has_statistics, :time)`, offer)
+		_, insertError := db.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, offer)
 		if insertError != nil {
 			log.Fatal(insertError)
 		}
 
-		lastId, err1 := res.LastInsertId()
-		if err1 != nil {
-			log.Fatal(err1)
-		}
+		offerID := offer.ID
 
 		for _, rate := range offer.Rates {
-			rate.Id_rate = int(lastId)
-			_, inserterr1 := db.NamedExec(`INSERT INTO rates (id_rate, name, rate) VALUES (:id_rate, :name, :rate)`, rate)
+			rate.OfferID = offerID
+			_, inserterr1 := db.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, rate)
 			if inserterr1 != nil {
 				log.Fatal(inserterr1)
 			}
