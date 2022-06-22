@@ -1,0 +1,11 @@
+var slicerates []Rate
+	rows, _ := db.Queryx("SELECT rate, name FROM rates WHERE offer_id = 8991909")
+	for rows.Next() {
+		err := rows.StructScan(&slicerates)
+		slicerates = append(slicerates, rates)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+	}
+	fmt.Println(slicerates)

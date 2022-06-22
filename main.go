@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(errLeagues)
 	}
 
-	fmt.Println(models.Leagues)
+	// fmt.Println(models.Leagues)
 
 	fmt.Println("#################################################################################")
 
@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(errOffers)
 	}
 
-	fmt.Println(models.Offers)
+	// fmt.Println(models.Offers)
 
 	//Init router
 
@@ -47,6 +47,9 @@ func main() {
 	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
 
 	database.ConnectDB()
+	database.InsertToDB()
+	database.GetOfferFromDB()
+	database.GetOffersFromDB()
 
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

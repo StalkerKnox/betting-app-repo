@@ -9,28 +9,76 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func ConnectDB() {
+func ConnectDB() *sqlx.DB {
 	db, err := sqlx.Connect("mysql", "root:OvjAcbmOh4E@(localhost:3306)/betting_app")
 	if err != nil {
 		log.Fatal(err)
 	}
+	return db
+}
 
-	for _, offer := range models.Offers {
-		_, insertError := db.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, offer)
-		if insertError != nil {
-			log.Fatal(insertError)
+var DB = ConnectDB()
+
+func InsertToDB() {
+
+	for _, singleOffer := range models.Offers {
+		_, insertErrOffers := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, singleOffer)
+		if insertErrOffers != nil {
+			log.Fatal(insertErrOffers)
 		}
 
-		offerID := offer.ID
-
-		for _, rate := range offer.Rates {
-			rate.OfferID = offerID
-			_, inserterr1 := db.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, rate)
-			if inserterr1 != nil {
-				log.Fatal(inserterr1)
+		for _, singleRate := range singleOffer.Rates {
+			singleRate.OfferID = singleOffer.ID
+			_, insertErrRates := DB.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, singleRate)
+			if insertErrRates != nil {
+				log.Fatal(insertErrRates)
 			}
 		}
+
+	}
+}
+
+func GetOffersFromDB() []models.OfferDB {
+
+	rowsm, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
+	for rowsm.Next() {
+		err := rowsm.StructScan(&models.SingleOffer)
+		models.IterationStorage = append(models.IterationStorage, models.SingleOffer)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
 	}
 
-	fmt.Println("succes")
+	for _, singleoffer := range models.IterationStorage {
+		var rowsi *sqlx.Rows
+		rowsi, _ = DB.Queryx("SELECT rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
+		for rowsi.Next() {
+
+			err := rowsi.StructScan(&models.SingleRate)
+			singleoffer.Rates = append(singleoffer.Rates, models.SingleRate)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
+
+	}
+	// fmt.Println(models.GetOffersFromDB)
+	return models.GetOffersFromDB
+}
+
+func GetOfferFromDB() {
+
+	rows, _ := DB.Queryx("SELECT rate, name FROM rates WHERE offer_id = 8991909")
+	for rows.Next() {
+		err := rows.StructScan(&models.RateFromDB)
+		models.OfferFromDB.Rates = append(models.OfferFromDB.Rates, models.RateFromDB)
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+	_ = DB.Get(&models.OfferFromDB, "SELECT * FROM offers WHERE offer_id = 8991909")
+	fmt.Println(models.OfferFromDB)
 }
