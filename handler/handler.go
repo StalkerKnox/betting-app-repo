@@ -45,14 +45,7 @@ func GetOfferbyID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	json.NewEncoder(w).Encode(models.OfferFromDB)
-	// for _, item := range models.Offers {
-	// 	if item.ID == id {
-	// 		json.NewEncoder(w).Encode(item)
-	// 		return
-	// 	}
-	// }
-	// w.WriteHeader(http.StatusNotFound)
-	// w.Write([]byte("Offer does not exists"))
+
 }
 
 // ADD new offer (POST method)
@@ -67,6 +60,9 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	offer.ID = rand.Intn(10000000)
+	// for _, rate := range offer.Rates {
+	// 	rate.OfferID = offer.ID
+	// }
 	insertErr := database.InsertOfferIntoDB(offer)
 	if insertErr != nil {
 		return
