@@ -2,7 +2,6 @@ package database
 
 import (
 	"betting-app/models"
-	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -69,9 +68,9 @@ func GetOffersFromDB() []models.OfferDB {
 	return models.GetOffersFromDB
 }
 
-func GetOfferFromDB() {
+func GetOfferFromDB(req int) error {
 
-	rows, _ := DB.Queryx("SELECT rate, name FROM rates WHERE offer_id = 8991909")
+	rows, _ := DB.Queryx("SELECT rate, name FROM rates WHERE offer_id = ? ", req)
 	for rows.Next() {
 		err := rows.StructScan(&models.RateFromDB)
 		models.OfferFromDB.Rates = append(models.OfferFromDB.Rates, models.RateFromDB)
@@ -79,6 +78,24 @@ func GetOfferFromDB() {
 			log.Fatalln(err)
 		}
 	}
-	_ = DB.Get(&models.OfferFromDB, "SELECT * FROM offers WHERE offer_id = 8991909")
-	fmt.Println(models.OfferFromDB)
+	err := DB.Get(&models.OfferFromDB, "SELECT * FROM offers WHERE offer_id = ?", req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func InsertOfferIntoDB(req models.Offer) error {
+	_, insertErr := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, req)
+	if insertErr != nil {
+		log.Fatal(insertErr)
+	}
+
+	for _, singleRate := range req.Rates {
+		_, insertErr = DB.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, singleRate)
+		if insertErr != nil {
+			log.Fatal(insertErr)
+		}
+	}
+	return nil
 }

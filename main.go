@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(errLeagues)
 	}
 
-	// fmt.Println(models.Leagues)
+	fmt.Println(models.Leagues)
 
 	fmt.Println("#################################################################################")
 
@@ -33,23 +33,22 @@ func main() {
 		log.Fatal(errOffers)
 	}
 
-	// fmt.Println(models.Offers)
+	fmt.Println(models.Offers)
 
 	//Init router
 
 	router := mux.NewRouter()
 
 	// Handling requests
-
+	database.ConnectDB()
+	database.InsertToDB()
 	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
 	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
 
-	database.ConnectDB()
-	database.InsertToDB()
-	database.GetOfferFromDB()
-	database.GetOffersFromDB()
+	// database.GetOfferFromDB()
+	// database.GetOffersFromDB()
 
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

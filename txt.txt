@@ -1,11 +1,57 @@
-var slicerates []Rate
-	rows, _ := db.Queryx("SELECT rate, name FROM rates WHERE offer_id = 8991909")
-	for rows.Next() {
-		err := rows.StructScan(&slicerates)
-		slicerates = append(slicerates, rates)
+func All() {
+
+	type Rate struct {
+		Rate float64 `json:"tecaj" db:"rate" validate:"required"`
+		Name string  `json:"naziv" db:"name" validate:"required"`
+	}
+
+	// db.Select(&rates, "SELECT * FROM rates WHERE offer_id = 8991909")
+
+	type Offer struct {
+		Number        string ` db:"number"`
+		TVchannel     string ` db:"tv_channel"`
+		ID            int    ` db:"offer_id"`
+		Title         string ` db:"title"`
+		HasStatistics bool   `db:"has_statistics"`
+		Time          string `db:"time"`
+		Slicerates    []Rate
+	}
+
+	// fmt.Println(Offerin)
+
+	type multiOffers []Offer
+	var getmultiOffers multiOffers
+	// getmultiOffers := []Offer{}
+
+	var multiOffer Offer
+	rowsm, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
+	for rowsm.Next() {
+		err := rowsm.StructScan(&multiOffer)
+		getmultiOffers = append(getmultiOffers, multiOffer)
 		if err != nil {
 			log.Fatalln(err)
 		}
 
 	}
-	fmt.Println(slicerates)
+	var singleRate Rate
+	var getmultiOffersTwo multiOffers
+
+	for _, singleoffer := range getmultiOffers {
+		var rowsi *sqlx.Rows
+		rowsi, _ = DB.Queryx("SELECT rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
+		for rowsi.Next() {
+
+			err := rowsi.StructScan(&singleRate)
+			singleoffer.Slicerates = append(singleoffer.Slicerates, singleRate)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		getmultiOffersTwo = append(getmultiOffersTwo, singleoffer)
+
+	}
+	fmt.Println(getmultiOffersTwo)
+
+}
+

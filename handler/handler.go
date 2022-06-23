@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"betting-app/database"
 	"betting-app/models"
 	"encoding/json"
 	"math/rand"
@@ -23,7 +24,8 @@ func GetLeagues(w http.ResponseWriter, r *http.Request) {
 // GET offers / implemented just for checking POST method
 func GetOffers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(models.Offers)
+	response := database.GetOffersFromDB()
+	json.NewEncoder(w).Encode(response)
 }
 
 // GET offers by ID
@@ -36,14 +38,21 @@ func GetOfferbyID(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Bad request"))
 		return
 	}
-	for _, item := range models.Offers {
-		if item.ID == id {
-			json.NewEncoder(w).Encode(item)
-			return
-		}
+	dataErr := database.GetOfferFromDB(id)
+	if dataErr != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Offer does not exists"))
+		return
 	}
-	w.WriteHeader(http.StatusNotFound)
-	w.Write([]byte("Offer does not exists"))
+	json.NewEncoder(w).Encode(models.OfferFromDB)
+	// for _, item := range models.Offers {
+	// 	if item.ID == id {
+	// 		json.NewEncoder(w).Encode(item)
+	// 		return
+	// 	}
+	// }
+	// w.WriteHeader(http.StatusNotFound)
+	// w.Write([]byte("Offer does not exists"))
 }
 
 // ADD new offer (POST method)
@@ -58,6 +67,10 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	offer.ID = rand.Intn(10000000)
-	models.Offers = append(models.Offers, offer)
+	insertErr := database.InsertOfferIntoDB(offer)
+	if insertErr != nil {
+		return
+	}
+
 	json.NewEncoder(w).Encode(offer)
 }
