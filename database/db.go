@@ -3,6 +3,7 @@ package database
 import (
 	"betting-app/models"
 	"log"
+	"math/rand"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -38,14 +39,14 @@ func InsertToDB() error {
 	return nil
 }
 
-func GetOffersFromDB() []models.Offer {
+func GetOffersFromDB() error {
 
 	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
 	for rows.Next() {
 		err := rows.StructScan(&models.SingleOffer)
 		models.IterationStorage = append(models.IterationStorage, models.SingleOffer)
 		if err != nil {
-			log.Fatalln(err)
+			return err
 		}
 
 	}
@@ -59,14 +60,14 @@ func GetOffersFromDB() []models.Offer {
 			singleoffer.Rates = append(singleoffer.Rates, models.SingleRate)
 
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 		}
 		models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
 
 	}
 	// fmt.Println(models.GetOffersFromDB)
-	return models.GetOffersFromDB
+	return nil
 }
 
 func GetOfferFromDB(req int) error {
@@ -100,4 +101,32 @@ func InsertOfferIntoDB(req models.Offer) error {
 		}
 	}
 	return nil
+}
+
+func InsertLeaguesIntoDB() {
+	for _, singleLeague := range models.Leagues.Leagues {
+		singleLeague.LeagueID = rand.Intn(100)
+		_, insertErr := DB.NamedExec(`INSERT INTO leagues (title, league_id) VALUES (:title, :league_id)`, singleLeague)
+		if insertErr != nil {
+			log.Fatal(insertErr)
+		}
+		for _, singleType := range singleLeague.Elaborations {
+			for _, oneType := range singleType.Types {
+				oneType.LeagueID = singleLeague.LeagueID
+				_, insertErr := DB.NamedExec(`INSERT INTO types (league_id, name) VALUES (:league_id, :name)`, oneType)
+				if insertErr != nil {
+					log.Fatal(insertErr)
+				}
+			}
+			for _, singleOffer := range singleType.Offers {
+				models.Helper.OfferID = singleOffer
+				models.Helper.LeagueID = singleLeague.LeagueID
+				_, insertErr := DB.NamedExec(`INSERT INTO connect (offer_id, league_id) VALUES (:offer_id, :league_id)`, models.Helper)
+				if insertErr != nil {
+					log.Fatal(insertErr)
+				}
+			}
+
+		}
+	}
 }

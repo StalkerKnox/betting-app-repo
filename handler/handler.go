@@ -24,8 +24,12 @@ func GetLeagues(w http.ResponseWriter, r *http.Request) {
 // GET offers / implemented just for checking POST method
 func GetOffers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	response := database.GetOffersFromDB()
-	json.NewEncoder(w).Encode(response)
+	err := database.GetOffersFromDB()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(models.GetOffersFromDB)
 }
 
 // GET offers by ID

@@ -6,8 +6,9 @@ type GetLeagueResponse struct {
 }
 
 type League struct {
-	Title        string        `json:"naziv"`
+	Title        string        `json:"naziv" db:"title"`
 	Elaborations []Elaboration `json:"razrade"`
+	LeagueID     int           `json:"liga_id" db:"league_id"`
 }
 
 type Elaboration struct {
@@ -16,7 +17,8 @@ type Elaboration struct {
 }
 
 type Type struct {
-	Name string `json:"naziv"`
+	Name     string `json:"naziv" db:"name"`
+	LeagueID int    `json:"liga_id" db:"league_id"`
 }
 
 //Creating GetOfferResponse Struct
@@ -58,3 +60,10 @@ var IterationStorage OffersFromDB
 
 var SingleRate Rate
 var GetOffersFromDB []Offer
+
+type Help struct {
+	OfferID  int `db:"offer_id"`
+	LeagueID int `db:"league_id"`
+}
+
+var Helper Help
