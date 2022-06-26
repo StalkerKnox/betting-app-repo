@@ -3,7 +3,6 @@ package database
 import (
 	"betting-app/models"
 	"log"
-	"math/rand"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
@@ -105,14 +104,22 @@ func InsertOfferIntoDB(req models.Offer) error {
 
 func InsertLeaguesIntoDB() {
 	for _, singleLeague := range models.Leagues.Leagues {
-		singleLeague.LeagueID = rand.Intn(100)
-		_, insertErr := DB.NamedExec(`INSERT INTO leagues (title, league_id) VALUES (:title, :league_id)`, singleLeague)
+		// singleLeague.ID = rand.Intn(100)
+		_, insertErr := DB.NamedExec(`INSERT INTO leagues (title) VALUES (:title)`, singleLeague)
 		if insertErr != nil {
 			log.Fatal(insertErr)
 		}
+		rows, _ := DB.Queryx("SELECT id FROM leagues")
+		for rows.Next() {
+			err := rows.StructScan(&singleLeague)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
 		for _, singleType := range singleLeague.Elaborations {
 			for _, oneType := range singleType.Types {
-				oneType.LeagueID = singleLeague.LeagueID
+				oneType.LeagueID = singleLeague.ID
 				_, insertErr := DB.NamedExec(`INSERT INTO types (league_id, name) VALUES (:league_id, :name)`, oneType)
 				if insertErr != nil {
 					log.Fatal(insertErr)
@@ -120,7 +127,7 @@ func InsertLeaguesIntoDB() {
 			}
 			for _, singleOffer := range singleType.Offers {
 				models.Helper.OfferID = singleOffer
-				models.Helper.LeagueID = singleLeague.LeagueID
+				models.Helper.LeagueID = singleLeague.ID
 				_, insertErr := DB.NamedExec(`INSERT INTO connect (offer_id, league_id) VALUES (:offer_id, :league_id)`, models.Helper)
 				if insertErr != nil {
 					log.Fatal(insertErr)

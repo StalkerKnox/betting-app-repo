@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(errLeagues)
 	}
 
-	fmt.Println(models.Leagues)
+	// fmt.Println(models.Leagues)
 
 	fmt.Println("#################################################################################")
 
@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(errOffers)
 	}
 
-	fmt.Println(models.Offers)
+	// fmt.Println(models.Offers)
 
 	//Init router
 
@@ -43,6 +43,7 @@ func main() {
 	database.ConnectDB()
 	database.InsertToDB()
 	database.InsertLeaguesIntoDB()
+	// database.GetLeaguesFromDB()
 	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")

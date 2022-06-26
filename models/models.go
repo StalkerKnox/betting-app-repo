@@ -8,7 +8,7 @@ type GetLeagueResponse struct {
 type League struct {
 	Title        string        `json:"naziv" db:"title"`
 	Elaborations []Elaboration `json:"razrade"`
-	LeagueID     int           `json:"liga_id" db:"league_id"`
+	ID           int           `json:"id" db:"id"`
 }
 
 type Elaboration struct {
@@ -20,6 +20,9 @@ type Type struct {
 	Name     string `json:"naziv" db:"name"`
 	LeagueID int    `json:"liga_id" db:"league_id"`
 }
+
+var GetLeaguesFromDB GetLeagueResponse
+var LeagueFromDB League
 
 //Creating GetOfferResponse Struct
 type GetOfferResponse []Offer
@@ -66,4 +69,7 @@ type Help struct {
 	LeagueID int `db:"league_id"`
 }
 
+// variables to store LEAGUES
 var Helper Help
+
+// help
