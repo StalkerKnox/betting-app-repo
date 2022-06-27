@@ -2,6 +2,7 @@ package database
 
 import (
 	"betting-app/models"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -65,6 +66,7 @@ func GetOffersFromDB() error {
 		models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
 
 	}
+
 	// fmt.Println(models.GetOffersFromDB)
 	return nil
 }
@@ -103,32 +105,53 @@ func InsertOfferIntoDB(req models.Offer) error {
 }
 
 func InsertLeaguesIntoDB() {
-	for _, singleLeague := range models.Leagues.Leagues {
-		// singleLeague.ID = rand.Intn(100)
-		_, insertErr := DB.NamedExec(`INSERT INTO leagues (title) VALUES (:title)`, singleLeague)
+	for _, singleLeague := range models.LeaguesStruct.Leagues {
+
+		res, insertErr := DB.NamedExec(`INSERT INTO leagues (title) VALUES (:title)`, singleLeague)
 		if insertErr != nil {
 			log.Fatal(insertErr)
 		}
-		rows, _ := DB.Queryx("SELECT id FROM leagues")
-		for rows.Next() {
-			err := rows.StructScan(&singleLeague)
+		leagueID, err := res.LastInsertId()
+		if err != nil {
+			log.Fatal(err)
+		}
+		// rows, _ := DB.Queryx("SELECT id FROM leagues")
+		// for rows.Next() {
+		// 	err := rows.StructScan(&singleLeague)
+		// 	if err != nil {
+		// 		log.Fatal(err)
+		// 	}
+		// }
+
+		for _, singleElaboration := range singleLeague.Elaborations {
+			singleElaboration.LeagueID = leagueID
+			res, insertErr := DB.NamedExec(`INSERT INTO elaborations (elaboration_id, league_id) VALUES (:elaboration_id, :league_id)`, singleElaboration)
+			if insertErr != nil {
+				log.Fatal(insertErr)
+			}
+
+			elaborationID, err := res.LastInsertId()
 			if err != nil {
 				log.Fatal(err)
 			}
-		}
-
-		for _, singleType := range singleLeague.Elaborations {
-			for _, oneType := range singleType.Types {
-				oneType.LeagueID = singleLeague.ID
-				_, insertErr := DB.NamedExec(`INSERT INTO types (league_id, name) VALUES (:league_id, :name)`, oneType)
+			// rows, _ := DB.Queryx("SELECT elaboration_id FROM elaborations")
+			// for rows.Next() {
+			// 	err := rows.StructScan(&singleElaboration)
+			// 	if err != nil {
+			// 		log.Fatal(err)
+			// 	}
+			// }
+			for _, singleType := range singleElaboration.Types {
+				singleType.ElaborationID = elaborationID
+				_, insertErr := DB.NamedExec(`INSERT INTO types (elaboration_id, name) VALUES (:elaboration_id, :name)`, singleType)
 				if insertErr != nil {
 					log.Fatal(insertErr)
 				}
 			}
-			for _, singleOffer := range singleType.Offers {
+			for _, singleOffer := range singleElaboration.Offers {
 				models.Helper.OfferID = singleOffer
-				models.Helper.LeagueID = singleLeague.ID
-				_, insertErr := DB.NamedExec(`INSERT INTO connect (offer_id, league_id) VALUES (:offer_id, :league_id)`, models.Helper)
+				models.Helper.ElaborationID = elaborationID
+				_, insertErr := DB.NamedExec(`INSERT INTO connect (elaboration_id, offer_id) VALUES (:elaboration_id, :offer_id)`, models.Helper)
 				if insertErr != nil {
 					log.Fatal(insertErr)
 				}
@@ -136,4 +159,44 @@ func InsertLeaguesIntoDB() {
 
 		}
 	}
+}
+
+func GetLeaguesFromDB() {
+	rows, _ := DB.Queryx("SELECT title, id FROM leagues")
+	for rows.Next() {
+		err := rows.StructScan(&models.LeagueDB)
+		if err != nil {
+			log.Fatal(err)
+		}
+		models.LeaguesStructDB.Leagues = append(models.LeaguesStructDB.Leagues, models.LeagueDB)
+	}
+	fmt.Println(models.LeaguesStructDB.Leagues)
+
+	for _, singleLeague := range models.LeaguesStructDB.Leagues {
+		rows, _ := DB.Queryx("SELECT elaboration_id FROM elaborations WHERE league_id = ?", singleLeague.ID)
+		for rows.Next() {
+			err := rows.StructScan(&models.ElaborationDB)
+			if err != nil {
+				log.Fatal(err)
+			}
+			singleLeague.Elaborations = append(singleLeague.Elaborations, models.ElaborationDB)
+		}
+
+		for _, singleElaboration := range singleLeague.Elaborations {
+			rows, _ := DB.Queryx("SELECT name FROM types WHERE elaboration_id = ? ", singleElaboration.ID)
+			for rows.Next() {
+				err := rows.StructScan(&models.TypeDB)
+				if err != nil {
+					log.Fatal(err)
+				}
+				singleElaboration.Types = append(singleElaboration.Types, models.TypeDB)
+			}
+
+			fmt.Println(singleElaboration.Types)
+		}
+		models.LeaguesStructDBDB.Leagues = append(models.LeaguesStructDBDB.Leagues, singleLeague)
+	}
+
+	fmt.Println(models.LeaguesStructDBDB)
+
 }

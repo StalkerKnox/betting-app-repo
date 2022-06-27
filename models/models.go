@@ -5,6 +5,14 @@ type GetLeagueResponse struct {
 	Leagues []League `json:"lige"`
 }
 
+var LeaguesStructDB GetLeagueResponse
+var LeaguesDB []League
+var LeagueDB League
+var ElaborationDB Elaboration
+var TypeDB Type
+var LeaguesStructDBDB GetLeagueResponse
+var Pomagac Elaboration
+
 type League struct {
 	Title        string        `json:"naziv" db:"title"`
 	Elaborations []Elaboration `json:"razrade"`
@@ -12,17 +20,17 @@ type League struct {
 }
 
 type Elaboration struct {
-	Types  []Type `json:"tipovi"`
-	Offers []int  `json:"ponude"`
+	Types    []Type  `json:"tipovi" `
+	Offers   []int64 `json:"ponude"`
+	LeagueID int64   `db:"league_id"`
+	ID       int64   `db:"elaboration_id"`
 }
 
 type Type struct {
-	Name     string `json:"naziv" db:"name"`
-	LeagueID int    `json:"liga_id" db:"league_id"`
+	Name          string `json:"naziv" db:"name"`
+	ElaborationID int64  `json:"elaboration_id" db:"elaboration_id"`
+	ID            int64  `json:"tip_id" db:"type_id"`
 }
-
-var GetLeaguesFromDB GetLeagueResponse
-var LeagueFromDB League
 
 //Creating GetOfferResponse Struct
 type GetOfferResponse []Offer
@@ -44,7 +52,7 @@ type Rate struct {
 }
 
 // Defining structure variables to store parsed JSON
-var Leagues GetLeagueResponse
+var LeaguesStruct GetLeagueResponse
 var Offers GetOfferResponse
 var OneOffer Offer
 
@@ -65,8 +73,8 @@ var SingleRate Rate
 var GetOffersFromDB []Offer
 
 type Help struct {
-	OfferID  int `db:"offer_id"`
-	LeagueID int `db:"league_id"`
+	OfferID       int64 `db:"offer_id"`
+	ElaborationID int64 `db:"elaboration_id"`
 }
 
 // variables to store LEAGUES

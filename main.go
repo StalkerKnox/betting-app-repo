@@ -19,7 +19,7 @@ var urlOffers = "https://minus5-dev-test.s3.eu-central-1.amazonaws.com/ponude.js
 
 func main() {
 
-	errLeagues := helper.GetJSON(urlLeagues, &models.Leagues)
+	errLeagues := helper.GetJSON(urlLeagues, &models.LeaguesStruct)
 	if errLeagues != nil {
 		log.Fatal(errLeagues)
 	}
@@ -43,7 +43,8 @@ func main() {
 	database.ConnectDB()
 	database.InsertToDB()
 	database.InsertLeaguesIntoDB()
-	// database.GetLeaguesFromDB()
+
+	database.GetLeaguesFromDB()
 	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
