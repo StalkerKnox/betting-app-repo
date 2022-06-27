@@ -2,7 +2,6 @@ package database
 
 import (
 	"betting-app/models"
-	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -44,30 +43,29 @@ func GetOffersFromDB() error {
 	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
 	for rows.Next() {
 		err := rows.StructScan(&models.SingleOffer)
-		models.IterationStorage = append(models.IterationStorage, models.SingleOffer)
+		models.GetOffersFromDB = append(models.GetOffersFromDB, models.SingleOffer)
 		if err != nil {
 			return err
 		}
 
 	}
 
-	for _, singleoffer := range models.IterationStorage {
-		var rows *sqlx.Rows
-		rows, _ = DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
+	for i, singleoffer := range models.GetOffersFromDB {
+
+		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
 		for rows.Next() {
 
 			err := rows.StructScan(&models.SingleRate)
-			singleoffer.Rates = append(singleoffer.Rates, models.SingleRate)
+			models.GetOffersFromDB[i].Rates = append(singleoffer.Rates, models.SingleRate)
 
 			if err != nil {
 				return err
 			}
 		}
-		models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
+		// models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
 
 	}
 
-	// fmt.Println(models.GetOffersFromDB)
 	return nil
 }
 
@@ -115,13 +113,6 @@ func InsertLeaguesIntoDB() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		// rows, _ := DB.Queryx("SELECT id FROM leagues")
-		// for rows.Next() {
-		// 	err := rows.StructScan(&singleLeague)
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 	}
-		// }
 
 		for _, singleElaboration := range singleLeague.Elaborations {
 			singleElaboration.LeagueID = leagueID
@@ -134,13 +125,7 @@ func InsertLeaguesIntoDB() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			// rows, _ := DB.Queryx("SELECT elaboration_id FROM elaborations")
-			// for rows.Next() {
-			// 	err := rows.StructScan(&singleElaboration)
-			// 	if err != nil {
-			// 		log.Fatal(err)
-			// 	}
-			// }
+
 			for _, singleType := range singleElaboration.Types {
 				singleType.ElaborationID = elaborationID
 				_, insertErr := DB.NamedExec(`INSERT INTO types (elaboration_id, name) VALUES (:elaboration_id, :name)`, singleType)
@@ -161,42 +146,48 @@ func InsertLeaguesIntoDB() {
 	}
 }
 
-func GetLeaguesFromDB() {
+func GetLeaguesFromDB() error {
 	rows, _ := DB.Queryx("SELECT title, id FROM leagues")
 	for rows.Next() {
 		err := rows.StructScan(&models.LeagueDB)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		models.LeaguesStructDB.Leagues = append(models.LeaguesStructDB.Leagues, models.LeagueDB)
+		models.GetLeaguesFromDB.Leagues = append(models.GetLeaguesFromDB.Leagues, models.LeagueDB)
 	}
-	fmt.Println(models.LeaguesStructDB.Leagues)
 
-	for _, singleLeague := range models.LeaguesStructDB.Leagues {
+	for i, singleLeague := range models.GetLeaguesFromDB.Leagues {
 		rows, _ := DB.Queryx("SELECT elaboration_id FROM elaborations WHERE league_id = ?", singleLeague.ID)
 		for rows.Next() {
 			err := rows.StructScan(&models.ElaborationDB)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
-			singleLeague.Elaborations = append(singleLeague.Elaborations, models.ElaborationDB)
+			models.GetLeaguesFromDB.Leagues[i].Elaborations = append(models.GetLeaguesFromDB.Leagues[i].Elaborations, models.ElaborationDB)
 		}
 
-		for _, singleElaboration := range singleLeague.Elaborations {
+		for j, singleElaboration := range models.GetLeaguesFromDB.Leagues[i].Elaborations {
 			rows, _ := DB.Queryx("SELECT name FROM types WHERE elaboration_id = ? ", singleElaboration.ID)
 			for rows.Next() {
 				err := rows.StructScan(&models.TypeDB)
 				if err != nil {
-					log.Fatal(err)
+					return err
 				}
-				singleElaboration.Types = append(singleElaboration.Types, models.TypeDB)
+				models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Types = append(models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Types, models.TypeDB)
 			}
 
-			fmt.Println(singleElaboration.Types)
-		}
-		models.LeaguesStructDBDB.Leagues = append(models.LeaguesStructDBDB.Leagues, singleLeague)
-	}
+			rows, _ = DB.Queryx("SELECT offer_id FROM connect WHERE elaboration_id = ? ", singleElaboration.ID)
+			for rows.Next() {
+				err := rows.StructScan(&models.OfferStruct)
+				if err != nil {
+					return err
+				}
+				models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Offers = append(models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Offers, models.OfferStruct.OfferID)
+			}
 
-	fmt.Println(models.LeaguesStructDBDB)
+		}
+
+	}
+	return nil
 
 }

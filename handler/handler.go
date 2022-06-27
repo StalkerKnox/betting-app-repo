@@ -15,7 +15,11 @@ import (
 // GET leagues
 func GetLeagues(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(models.LeaguesStruct)
+	err := database.GetLeaguesFromDB()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	err = json.NewEncoder(w).Encode(models.GetLeaguesFromDB)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

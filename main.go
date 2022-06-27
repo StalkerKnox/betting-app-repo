@@ -44,7 +44,6 @@ func main() {
 	database.InsertToDB()
 	database.InsertLeaguesIntoDB()
 
-	database.GetLeaguesFromDB()
 	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
