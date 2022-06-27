@@ -8,21 +8,21 @@ type GetLeagueResponse struct {
 type League struct {
 	Title        string        `json:"naziv" db:"title"`
 	Elaborations []Elaboration `json:"razrade"`
-	ID           int           `json:"id" db:"id"`
+	ID           int           `json:"-" db:"id"`
 }
 
 type Elaboration struct {
-	Types  []Type `json:"tipovi"`
-	Offers []int  `json:"ponude"`
+	Types    []Type  `json:"tipovi" `
+	Offers   []int64 `json:"ponude"`
+	LeagueID int64   `json:"-" db:"league_id"`
+	ID       int64   `json:"-" db:"elaboration_id"`
 }
 
 type Type struct {
-	Name     string `json:"naziv" db:"name"`
-	LeagueID int    `json:"liga_id" db:"league_id"`
+	Name          string `json:"naziv" db:"name"`
+	ElaborationID int64  `json:"-" db:"elaboration_id"`
+	ID            int64  `json:"-" db:"type_id"`
 }
-
-var GetLeaguesFromDB GetLeagueResponse
-var LeagueFromDB League
 
 //Creating GetOfferResponse Struct
 type GetOfferResponse []Offer
@@ -38,13 +38,13 @@ type Offer struct {
 }
 
 type Rate struct {
-	OfferID int     `json:"ponude_id" db:"offer_id"`
+	OfferID int     `json:"-" db:"offer_id"`
 	Rate    float64 `json:"tecaj" db:"rate" validate:"required"`
 	Name    string  `json:"naziv" db:"name" validate:"required"`
 }
 
 // Defining structure variables to store parsed JSON
-var Leagues GetLeagueResponse
+var LeaguesStruct GetLeagueResponse
 var Offers GetOfferResponse
 var OneOffer Offer
 
@@ -54,22 +54,25 @@ var OneOffer Offer
 var OfferFromDB Offer
 var RateFromDB Rate
 
-//defining variables to store OFFERS
+//defining variables to store OFFERS from DB
 
 type OffersFromDB []Offer
 
 var SingleOffer Offer
-var IterationStorage OffersFromDB
 
 var SingleRate Rate
 var GetOffersFromDB []Offer
 
+//definig variables to store LEAGUES form DB
 type Help struct {
-	OfferID  int `db:"offer_id"`
-	LeagueID int `db:"league_id"`
+	OfferID       int64 `db:"offer_id"`
+	ElaborationID int64 `db:"elaboration_id"`
 }
 
-// variables to store LEAGUES
 var Helper Help
-
-// help
+var GetLeaguesFromDB GetLeagueResponse
+var LeaguesDB []League
+var LeagueDB League
+var ElaborationDB Elaboration
+var TypeDB Type
+var OfferStruct Help
