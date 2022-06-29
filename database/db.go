@@ -191,3 +191,46 @@ func GetLeaguesFromDB() error {
 	return nil
 
 }
+
+func GetBalanceFromDB() error {
+	err := DB.Get(&models.Ticket.RemainingBalance, "SELECT balance FROM players WHERE user_name = ?", models.Ticket.UserName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+
+}
+
+func GetRatesFromDB() error {
+	var calculatorStorage []float64
+
+	for i, singlePlayedOffer := range models.Ticket.PlayedOffers {
+		rows, _ := DB.Queryx("SELECT * FROM rates WHERE offer_id = ? AND name = ?", singlePlayedOffer.ID, singlePlayedOffer.Name)
+		for rows.Next() {
+			err := rows.StructScan(&models.OfferInd)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		models.Ticket.PlayedOffers[i].Rate = models.OfferInd.Rate
+		calculatorStorage = append(calculatorStorage, models.OfferInd.Rate)
+
+		var prizeMoney float64 = models.Ticket.PaymentAmount
+		for _, coef := range calculatorStorage {
+			prizeMoney = coef * prizeMoney
+		}
+		models.Ticket.PrizeMoney = prizeMoney
+
+	}
+	models.Ticket.RemainingBalance = models.Ticket.RemainingBalance - models.Ticket.PaymentAmount
+
+	return nil
+}
+
+func UpdateBalance() error {
+	_, insertErr := DB.Exec(`UPDATE players SET balance = ? WHERE user_name = ?`, models.Ticket.RemainingBalance, models.Ticket.UserName)
+	if insertErr != nil {
+		return insertErr
+	}
+	return nil
+}

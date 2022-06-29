@@ -48,6 +48,7 @@ func main() {
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
 	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
+	router.HandleFunc("/tickets", handler.AddNewTicket).Methods("POST")
 
 	// database.GetOfferFromDB()
 	// database.GetOffersFromDB()

@@ -4,6 +4,7 @@ import (
 	"betting-app/database"
 	"betting-app/models"
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -68,13 +69,32 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	offer.ID = rand.Intn(10000000)
-	// for _, rate := range offer.Rates {
-	// 	rate.OfferID = offer.ID
-	// }
 	insertErr := database.InsertOfferIntoDB(offer)
 	if insertErr != nil {
 		return
 	}
 
 	json.NewEncoder(w).Encode(offer)
+}
+
+// Simulate ticket
+func AddNewTicket(w http.ResponseWriter, r *http.Request) {
+
+	json.NewDecoder(r.Body).Decode(&models.Ticket)
+	_ = database.GetBalanceFromDB()
+	if models.Ticket.PaymentAmount > models.Ticket.RemainingBalance {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Sorry, but you are broke. Come back when you are rich"))
+		return
+	}
+	_ = database.GetRatesFromDB()
+	if models.Ticket.PrizeMoney > 10000 {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte("Sorry, but we don't accept values over 10k"))
+	}
+
+	_ = database.UpdateBalance()
+	json.NewEncoder(w).Encode(models.Ticket)
+	fmt.Println(models.Ticket)
+
 }
