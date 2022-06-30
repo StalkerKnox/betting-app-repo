@@ -5,7 +5,6 @@ import (
 	"betting-app/handler"
 	"betting-app/helper"
 	"betting-app/models"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -24,33 +23,26 @@ func main() {
 		log.Fatal(errLeagues)
 	}
 
-	// fmt.Println(models.Leagues)
-
-	fmt.Println("#################################################################################")
-
 	errOffers := helper.GetJSON(urlOffers, &models.Offers)
 	if errOffers != nil {
 		log.Fatal(errOffers)
 	}
 
-	// fmt.Println(models.Offers)
-
 	//Init router
 
 	router := mux.NewRouter()
 
-	// Handling requests
+	//Database operations
 	database.ConnectDB()
-	database.InsertToDB()
+	database.InsertOffersIntoDB()
 	database.InsertLeaguesIntoDB()
 
+	// Handling requests
 	router.HandleFunc("/leagues", handler.GetLeagues).Methods("GET")
 	router.HandleFunc("/offers/{id}", handler.GetOfferbyID).Methods("GET")
 	router.HandleFunc("/offers", handler.GetOffers).Methods("GET")
 	router.HandleFunc("/offers", handler.AddNewOffer).Methods("POST")
-
-	// database.GetOfferFromDB()
-	// database.GetOffersFromDB()
+	router.HandleFunc("/tickets", handler.AddNewTicket).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

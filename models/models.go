@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // Creating GetLeagueResponse Struct
 type GetLeagueResponse struct {
 	Leagues []League `json:"lige"`
@@ -24,17 +26,17 @@ type Type struct {
 	ID            int64  `json:"-" db:"type_id"`
 }
 
-//Creating GetOfferResponse Struct
+//Creating GetOfferResponse Slice of Structs
 type GetOfferResponse []Offer
 
 type Offer struct {
-	Number        string `json:"broj" db:"number" validate:"required"`
-	TVchannel     string `json:"tv_kanal" db:"tv_channel"`
-	ID            int    `json:"id" db:"offer_id"`
-	Title         string `json:"naziv" db:"title" validate:"required"`
-	HasStatistics bool   `json:"ima_statistiku" db:"has_statistics" validate:"required"`
-	Time          string `json:"vrijeme" db:"time" validate:"required"`
-	Rates         []Rate `json:"tecajevi" validate:"required"`
+	Number        string    `json:"broj" db:"number" validate:"required"`
+	TVchannel     string    `json:"tv_kanal" db:"tv_channel"`
+	ID            int       `json:"id" db:"offer_id"`
+	Title         string    `json:"naziv" db:"title" validate:"required"`
+	HasStatistics bool      `json:"ima_statistiku" db:"has_statistics" validate:"required"`
+	Time          time.Time `json:"vrijeme" db:"time" validate:"required"`
+	Rates         []Rate    `json:"tecajevi" validate:"required"`
 }
 
 type Rate struct {
@@ -76,3 +78,24 @@ var LeagueDB League
 var ElaborationDB Elaboration
 var TypeDB Type
 var OfferStruct Help
+
+type TikcetDesign struct {
+	UserName         string        `json:"korisnicko_ime" db:"user_name"`
+	PaymentAmount    float64       `json:"uplaceni_iznos" `
+	PlayedOffers     []PlayedOffer `json:"lista_odigranih_ponuda"`
+	PrizeMoney       float64       `json:"moguci_dobitak"`
+	RemainingBalance float64       `json:"-" db:"balance"`
+}
+
+type PlayedOffer struct {
+	ID   int     `json:"id_ponude" db:"offer_id"`
+	Name string  `json:"odigrani_tip" db:"name"`
+	Rate float64 `json:"-" db:"rate"`
+}
+
+var Ticket TikcetDesign
+var PlayOffer PlayedOffer
+
+type MultiOfferInd []PlayedOffer
+
+var CalculatorStorage []float64
