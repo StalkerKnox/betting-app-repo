@@ -77,20 +77,21 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(offer)
 }
 
-// Simulate ticket
+// Simulate ticket (POST method)
 func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 
 	json.NewDecoder(r.Body).Decode(&models.Ticket)
 	_ = database.GetBalanceFromDB()
 	if models.Ticket.PaymentAmount > models.Ticket.RemainingBalance {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Sorry, but you are broke. Come back when you are rich"))
+		w.Write([]byte("Sorry, but your account balance is not sufficient for this payment amaount."))
 		return
 	}
 	_ = database.GetRatesFromDB()
 	if models.Ticket.PrizeMoney > 10000 {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte("Sorry, but we don't accept values over 10k"))
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Sorry, but the prize money exceeds 10,000 "))
+		return
 	}
 
 	_ = database.UpdateBalance()

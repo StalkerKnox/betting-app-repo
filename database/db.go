@@ -8,29 +8,31 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// CONNECT TO MYSQL DB
 func ConnectDB() *sqlx.DB {
-	db, err := sqlx.Connect("mysql", "root:OvjAcbmOh4E@(localhost:3306)/betting_app")
+	db, err := sqlx.Connect("mysql", "root:OvjAcbmOh4E@(localhost:3306)/betting_app?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
 	return db
 }
 
+// DEFINING GLOBAL VARIABLE DB
 var DB = ConnectDB()
 
-func InsertToDB() error {
+func InsertOffersIntoDB() error {
 
 	for _, singleOffer := range models.Offers {
 		_, insertErrOffers := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, singleOffer)
 		if insertErrOffers != nil {
-			return insertErrOffers
+			log.Fatal(insertErrOffers)
 		}
 
 		for _, singleRate := range singleOffer.Rates {
 			singleRate.OfferID = singleOffer.ID
 			_, insertErrRates := DB.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, singleRate)
 			if insertErrRates != nil {
-				return insertErrRates
+				log.Fatal(insertErrRates)
 			}
 		}
 
@@ -38,70 +40,7 @@ func InsertToDB() error {
 	return nil
 }
 
-func GetOffersFromDB() error {
-
-	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
-	for rows.Next() {
-		err := rows.StructScan(&models.SingleOffer)
-		models.GetOffersFromDB = append(models.GetOffersFromDB, models.SingleOffer)
-		if err != nil {
-			return err
-		}
-
-	}
-
-	for i, singleoffer := range models.GetOffersFromDB {
-
-		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
-		for rows.Next() {
-
-			err := rows.StructScan(&models.SingleRate)
-			models.GetOffersFromDB[i].Rates = append(singleoffer.Rates, models.SingleRate)
-
-			if err != nil {
-				return err
-			}
-		}
-		// models.GetOffersFromDB = append(models.GetOffersFromDB, singleoffer)
-
-	}
-
-	return nil
-}
-
-func GetOfferFromDB(req int) error {
-
-	rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", req)
-	for rows.Next() {
-		err := rows.StructScan(&models.RateFromDB)
-		models.OfferFromDB.Rates = append(models.OfferFromDB.Rates, models.RateFromDB)
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}
-	err := DB.Get(&models.OfferFromDB, "SELECT * FROM offers WHERE offer_id = ?", req)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func InsertOfferIntoDB(req models.Offer) error {
-	_, insertErr := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, req)
-	if insertErr != nil {
-		log.Fatal(insertErr)
-	}
-
-	for _, singleRate := range req.Rates {
-		singleRate.OfferID = req.ID
-		_, insertErr = DB.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, singleRate)
-		if insertErr != nil {
-			log.Fatal(insertErr)
-		}
-	}
-	return nil
-}
-
+// INSERT LEAGUES INTO DB
 func InsertLeaguesIntoDB() {
 	for _, singleLeague := range models.LeaguesStruct.Leagues {
 
@@ -146,12 +85,79 @@ func InsertLeaguesIntoDB() {
 	}
 }
 
+// GET OFFERS FROM DB
+func GetOffersFromDB() error {
+
+	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
+	for rows.Next() {
+		err := rows.StructScan(&models.SingleOffer)
+		models.GetOffersFromDB = append(models.GetOffersFromDB, models.SingleOffer)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
+
+	for i, singleoffer := range models.GetOffersFromDB {
+
+		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
+		for rows.Next() {
+
+			err := rows.StructScan(&models.SingleRate)
+			models.GetOffersFromDB[i].Rates = append(singleoffer.Rates, models.SingleRate)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}
+
+	return nil
+}
+
+//GET SINGLE OFFER FROM DB
+func GetOfferFromDB(req int) error {
+
+	rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", req)
+	for rows.Next() {
+		err := rows.StructScan(&models.RateFromDB)
+		models.OfferFromDB.Rates = append(models.OfferFromDB.Rates, models.RateFromDB)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	err := DB.Get(&models.OfferFromDB, "SELECT * FROM offers WHERE offer_id = ?", req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+// INSERT SINGLE OFFER INTO DB
+func InsertOfferIntoDB(req models.Offer) error {
+	_, insertErr := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, req)
+	if insertErr != nil {
+		log.Fatal(insertErr)
+	}
+
+	for _, singleRate := range req.Rates {
+		singleRate.OfferID = req.ID
+		_, insertErr = DB.NamedExec(`INSERT INTO rates (offer_id, name, rate) VALUES (:offer_id, :name, :rate)`, singleRate)
+		if insertErr != nil {
+			log.Fatal(insertErr)
+		}
+	}
+	return nil
+}
+
+// GET LEAGUES FROM DB
 func GetLeaguesFromDB() error {
 	rows, _ := DB.Queryx("SELECT title, id FROM leagues")
 	for rows.Next() {
 		err := rows.StructScan(&models.LeagueDB)
 		if err != nil {
-			return err
+			log.Fatal(err)
 		}
 		models.GetLeaguesFromDB.Leagues = append(models.GetLeaguesFromDB.Leagues, models.LeagueDB)
 	}
@@ -161,7 +167,7 @@ func GetLeaguesFromDB() error {
 		for rows.Next() {
 			err := rows.StructScan(&models.ElaborationDB)
 			if err != nil {
-				return err
+				log.Fatal(err)
 			}
 			models.GetLeaguesFromDB.Leagues[i].Elaborations = append(models.GetLeaguesFromDB.Leagues[i].Elaborations, models.ElaborationDB)
 		}
@@ -171,7 +177,7 @@ func GetLeaguesFromDB() error {
 			for rows.Next() {
 				err := rows.StructScan(&models.TypeDB)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 				models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Types = append(models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Types, models.TypeDB)
 			}
@@ -180,7 +186,7 @@ func GetLeaguesFromDB() error {
 			for rows.Next() {
 				err := rows.StructScan(&models.OfferStruct)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 				models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Offers = append(models.GetLeaguesFromDB.Leagues[i].Elaborations[j].Offers, models.OfferStruct.OfferID)
 			}
@@ -192,6 +198,7 @@ func GetLeaguesFromDB() error {
 
 }
 
+// GET USER BALANCE FROM DB
 func GetBalanceFromDB() error {
 	err := DB.Get(&models.Ticket.RemainingBalance, "SELECT balance FROM players WHERE user_name = ?", models.Ticket.UserName)
 	if err != nil {
@@ -201,19 +208,20 @@ func GetBalanceFromDB() error {
 
 }
 
+// GET RATES FOR EVERY SINGLE PLAYED TYPE
 func GetRatesFromDB() error {
 	var calculatorStorage []float64
 
 	for i, singlePlayedOffer := range models.Ticket.PlayedOffers {
 		rows, _ := DB.Queryx("SELECT * FROM rates WHERE offer_id = ? AND name = ?", singlePlayedOffer.ID, singlePlayedOffer.Name)
 		for rows.Next() {
-			err := rows.StructScan(&models.OfferInd)
+			err := rows.StructScan(&models.PlayOffer)
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
-		models.Ticket.PlayedOffers[i].Rate = models.OfferInd.Rate
-		calculatorStorage = append(calculatorStorage, models.OfferInd.Rate)
+		models.Ticket.PlayedOffers[i].Rate = models.PlayOffer.Rate
+		calculatorStorage = append(calculatorStorage, models.PlayOffer.Rate)
 
 		var prizeMoney float64 = models.Ticket.PaymentAmount
 		for _, coef := range calculatorStorage {
@@ -227,10 +235,11 @@ func GetRatesFromDB() error {
 	return nil
 }
 
+// UPDATE user balance after simulating ticket paying
 func UpdateBalance() error {
-	_, insertErr := DB.Exec(`UPDATE players SET balance = ? WHERE user_name = ?`, models.Ticket.RemainingBalance, models.Ticket.UserName)
-	if insertErr != nil {
-		return insertErr
+	_, updateErr := DB.Exec(`UPDATE players SET balance = ? WHERE user_name = ?`, models.Ticket.RemainingBalance, models.Ticket.UserName)
+	if updateErr != nil {
+		log.Fatal(updateErr)
 	}
 	return nil
 }
