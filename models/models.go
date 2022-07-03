@@ -57,15 +57,17 @@ type Help struct {
 
 // Ticket design
 type TikcetDesign struct {
+	ID               int           `db:"ticket_id"`
 	UserName         string        `json:"korisnicko_ime" db:"user_name"`
-	PaymentAmount    float64       `json:"uplaceni_iznos" `
+	PaymentAmount    float64       `json:"uplaceni_iznos" db:"payment_amount"`
 	PlayedOffers     []PlayedOffer `json:"lista_odigranih_ponuda"`
-	PrizeMoney       float64       `json:"moguci_dobitak"`
+	PrizeMoney       float64       `json:"moguci_dobitak" db:"prize_money"`
 	RemainingBalance float64       `json:"-" db:"balance"`
 }
 
 type PlayedOffer struct {
-	ID   int     `json:"id_ponude" db:"offer_id"`
-	Name string  `json:"odigrani_tip" db:"name"`
-	Rate float64 `json:"-" db:"rate"`
+	ID       int     `json:"id_ponude" db:"offer_id"`
+	TicketID int     `json:"-" db:"ticket_id"`
+	Name     string  `json:"odigrani_tip" db:"name"`
+	Rate     float64 `json:"-" db:"rate"`
 }

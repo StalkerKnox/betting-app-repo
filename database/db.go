@@ -23,7 +23,13 @@ var DB = ConnectDB()
 func InsertOffersIntoDB(x models.GetOfferResponse) error {
 
 	for _, singleOffer := range x {
-		_, insertErrOffers := DB.NamedExec(`INSERT INTO offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, singleOffer)
+		var checker models.Offer
+		_ = DB.Get(&checker, "SELECT * FROM offers WHERE offer_id = ?", singleOffer.ID)
+		if checker.ID == singleOffer.ID {
+			continue
+		}
+
+		_, insertErrOffers := DB.NamedExec(`INSERT offers (number, tv_channel, offer_id, title, has_statistics, time) VALUES (:number, :tv_channel, :offer_id, :title, :has_statistics, :time)`, singleOffer)
 		if insertErrOffers != nil {
 			return insertErrOffers
 		}
@@ -44,6 +50,11 @@ func InsertOffersIntoDB(x models.GetOfferResponse) error {
 func InsertLeaguesIntoDB(x models.GetLeagueResponse) error {
 	var helper models.Help
 	for _, singleLeague := range x.Leagues {
+		var checker models.League
+		_ = DB.Get(&checker, "SELECT * FROM leagues WHERE title = ?", singleLeague.Title)
+		if checker.Title == singleLeague.Title {
+			continue
+		}
 
 		res, insertErr := DB.NamedExec(`INSERT INTO leagues (title) VALUES (:title)`, singleLeague)
 		if insertErr != nil {
@@ -253,4 +264,26 @@ func UpdateBalance(x models.TikcetDesign) error {
 		return updateErr
 	}
 	return nil
+}
+
+func InsertTicketIntoDB(x models.TikcetDesign) (*models.TikcetDesign, error) {
+	res, insertErr := DB.NamedExec(`INSERT INTO tickets (ticket_id, user_name, payment_amount, prize_money) VALUES (:ticket_id, :user_name, :payment_amount, :prize_money)`, x)
+	if insertErr != nil {
+		return nil, insertErr
+	}
+
+	ticketID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	x.ID = int(ticketID)
+
+	for _, singleOffer := range x.PlayedOffers {
+		singleOffer.TicketID = x.ID
+		_, insertErr = DB.NamedExec(`INSERT INTO played_offers (ticket_id, offer_id, rate, name) VALUES (:ticket_id, :offer_id, :rate, :name)`, singleOffer)
+		if insertErr != nil {
+			return nil, insertErr
+		}
+	}
+	return &x, nil
 }

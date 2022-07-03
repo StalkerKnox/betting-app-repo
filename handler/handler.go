@@ -101,6 +101,10 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_ = database.UpdateBalance(*playedTicket)
+	playedTicket, err = database.InsertTicketIntoDB(*playedTicket)
+	if err != nil {
+		log.Fatal(err)
+	}
 	json.NewEncoder(w).Encode(playedTicket)
 	fmt.Println(playedTicket)
 
