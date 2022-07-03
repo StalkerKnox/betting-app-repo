@@ -29,7 +29,10 @@ func InsertOffersIntoDB(x models.GetOfferResponse) error {
 
 	for _, singleOffer := range x {
 		var checker models.Offer
-		_ = DB.Get(&checker, "SELECT * FROM offers WHERE offer_id = ?", singleOffer.ID)
+		err := DB.Get(&checker, "SELECT * FROM offers WHERE offer_id = ?", singleOffer.ID)
+		if err != nil {
+			return err
+		}
 		if checker.ID == singleOffer.ID {
 			continue
 		}
@@ -56,7 +59,10 @@ func InsertLeaguesIntoDB(x models.GetLeagueResponse) error {
 	var helper models.Help
 	for _, singleLeague := range x.Leagues {
 		var checker models.League
-		_ = DB.Get(&checker, "SELECT * FROM leagues WHERE title = ?", singleLeague.Title)
+		err := DB.Get(&checker, "SELECT * FROM leagues WHERE title = ?", singleLeague.Title)
+		if err != nil {
+			return err
+		}
 		if checker.Title == singleLeague.Title {
 			continue
 		}
@@ -108,7 +114,10 @@ func GetOffersFromDB() (*[]models.Offer, error) {
 	var getOffersFromDB []models.Offer
 	var oneOffer models.Offer
 	var singleRate models.Rate
-	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
+	rows, err := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
+	if err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		err := rows.StructScan(&oneOffer)
 		getOffersFromDB = append(getOffersFromDB, oneOffer)
@@ -120,7 +129,10 @@ func GetOffersFromDB() (*[]models.Offer, error) {
 
 	for i, singleOffer := range getOffersFromDB {
 
-		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleOffer.ID)
+		rows, err := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleOffer.ID)
+		if err != nil {
+			return nil, err
+		}
 		for rows.Next() {
 
 			err := rows.StructScan(&singleRate)
@@ -140,7 +152,10 @@ func GetOffersFromDB() (*[]models.Offer, error) {
 func GetOfferFromDB(req int) (*models.Offer, error) {
 	var offerFromDB models.Offer
 	var rateFromDB models.Rate
-	rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", req)
+	rows, err := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", req)
+	if err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		err := rows.StructScan(&rateFromDB)
 		offerFromDB.Rates = append(offerFromDB.Rates, rateFromDB)
@@ -148,7 +163,7 @@ func GetOfferFromDB(req int) (*models.Offer, error) {
 			return nil, err
 		}
 	}
-	err := DB.Get(&offerFromDB, "SELECT * FROM offers WHERE offer_id = ?", req)
+	err = DB.Get(&offerFromDB, "SELECT * FROM offers WHERE offer_id = ?", req)
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +191,10 @@ func InsertOfferIntoDB(req models.Offer) error {
 func GetLeaguesFromDB() (*models.GetLeagueResponse, error) {
 	var getLeaguesFromDB models.GetLeagueResponse
 	var leagueDB models.League
-	rows, _ := DB.Queryx("SELECT title, id FROM leagues")
+	rows, err := DB.Queryx("SELECT title, id FROM leagues")
+	if err != nil {
+		return nil, err
+	}
 	for rows.Next() {
 		err := rows.StructScan(&leagueDB)
 		if err != nil {
@@ -187,7 +205,10 @@ func GetLeaguesFromDB() (*models.GetLeagueResponse, error) {
 
 	var elaborationDB models.Elaboration
 	for i, singleLeague := range getLeaguesFromDB.Leagues {
-		rows, _ := DB.Queryx("SELECT elaboration_id FROM elaborations WHERE league_id = ?", singleLeague.ID)
+		rows, err := DB.Queryx("SELECT elaboration_id FROM elaborations WHERE league_id = ?", singleLeague.ID)
+		if err != nil {
+			return nil, err
+		}
 		for rows.Next() {
 			err := rows.StructScan(&elaborationDB)
 			if err != nil {
@@ -198,7 +219,10 @@ func GetLeaguesFromDB() (*models.GetLeagueResponse, error) {
 
 		var typeDB models.Type
 		for j, singleElaboration := range getLeaguesFromDB.Leagues[i].Elaborations {
-			rows, _ := DB.Queryx("SELECT name FROM types WHERE elaboration_id = ? ", singleElaboration.ID)
+			rows, err := DB.Queryx("SELECT name FROM types WHERE elaboration_id = ? ", singleElaboration.ID)
+			if err != nil {
+				return nil, err
+			}
 			for rows.Next() {
 				err := rows.StructScan(&typeDB)
 				if err != nil {
@@ -208,7 +232,10 @@ func GetLeaguesFromDB() (*models.GetLeagueResponse, error) {
 			}
 
 			var offerStruct models.Help
-			rows, _ = DB.Queryx("SELECT offer_id FROM connect WHERE elaboration_id = ? ", singleElaboration.ID)
+			rows, err = DB.Queryx("SELECT offer_id FROM connect WHERE elaboration_id = ? ", singleElaboration.ID)
+			if err != nil {
+				return nil, err
+			}
 			for rows.Next() {
 				err := rows.StructScan(&offerStruct)
 				if err != nil {
@@ -240,7 +267,10 @@ func GetRatesFromDB(x models.TikcetDesign) (*models.TikcetDesign, error) {
 	var playOffer models.PlayedOffer
 
 	for i, singlePlayedOffer := range x.PlayedOffers {
-		rows, _ := DB.Queryx("SELECT * FROM rates WHERE offer_id = ? AND name = ?", singlePlayedOffer.ID, singlePlayedOffer.Name)
+		rows, err := DB.Queryx("SELECT * FROM rates WHERE offer_id = ? AND name = ?", singlePlayedOffer.ID, singlePlayedOffer.Name)
+		if err != nil {
+			return nil, err
+		}
 		for rows.Next() {
 			err := rows.StructScan(&playOffer)
 			if err != nil {

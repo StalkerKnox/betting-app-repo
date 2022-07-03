@@ -92,14 +92,20 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Sorry, but your account balance is not sufficient for this payment amaount."))
 		return
 	}
-	playedTicket, _ := database.GetRatesFromDB(ticket)
+	playedTicket, err := database.GetRatesFromDB(ticket)
+	if err != nil {
+		fmt.Println(err)
+	}
 	if playedTicket.PrizeMoney > 10000 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Sorry, but the prize money exceeds 10,000 "))
 		return
 	}
 
-	_ = database.UpdateBalance(*playedTicket)
+	err = database.UpdateBalance(*playedTicket)
+	if err != nil {
+		fmt.Println(err)
+	}
 	playedTicket, err = database.InsertTicketIntoDB(*playedTicket)
 	if err != nil {
 		fmt.Println(err)
