@@ -2,6 +2,8 @@ package database
 
 import (
 	"betting-app/models"
+	"flag"
+
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,7 +12,9 @@ import (
 
 // CONNECT TO MYSQL DB
 func ConnectDB() *sqlx.DB {
-	db, err := sqlx.Connect("mysql", "root:OvjAcbmOh4E@(localhost:3306)/betting_app?parseTime=true")
+	connection := flag.String("connection", "root:OvjAcbmOh4E@(localhost:3306)/betting_app?parseTime=true", "default connection")
+	db, err := sqlx.Connect("mysql", *connection)
+	flag.Parse()
 	if err != nil {
 		log.Fatal(err)
 	}
