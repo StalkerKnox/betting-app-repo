@@ -47,13 +47,7 @@ type Rate struct {
 
 //DATABASE
 
-type OffersFromDB []Offer
-
-// Helper struct
-type Help struct {
-	OfferID       int64 `db:"offer_id"`
-	ElaborationID int64 `db:"elaboration_id"`
-}
+// type OffersFromDB []Offer
 
 // Ticket design
 type TikcetDesign struct {
@@ -70,4 +64,10 @@ type PlayedOffer struct {
 	TicketID int     `json:"-" db:"ticket_id"`
 	Name     string  `json:"odigrani_tip" db:"name"`
 	Rate     float64 `json:"-" db:"rate"`
+}
+
+// Helper struct for DB operations
+type Help struct {
+	OfferID       int64 `db:"offer_id"`
+	ElaborationID int64 `db:"elaboration_id"`
 }

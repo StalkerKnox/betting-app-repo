@@ -12,9 +12,10 @@ import (
 
 // CONNECT TO MYSQL DB
 func ConnectDB() *sqlx.DB {
-	connection := flag.String("connection", "root:OvjAcbmOh4E@(localhost:3306)/betting_app?parseTime=true", "default connection")
-	db, err := sqlx.Connect("mysql", *connection)
+	connection := flag.String("connection", "root:OvjAcbmOh4E@(localhost:3307)/betting_app?parseTime=true", "default connection")
 	flag.Parse()
+	db, err := sqlx.Connect("mysql", *connection)
+
 	if err != nil {
 		log.Fatal(err)
 	}

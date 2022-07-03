@@ -5,7 +5,6 @@ import (
 	"betting-app/models"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -86,7 +85,7 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ticket.RemainingBalance, err = database.GetBalanceFromDB(ticket)
 	if err != nil {
-		log.Fatal(err)
+		println(err)
 	}
 	if ticket.PaymentAmount > ticket.RemainingBalance {
 		w.WriteHeader(http.StatusBadRequest)
@@ -103,7 +102,7 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	_ = database.UpdateBalance(*playedTicket)
 	playedTicket, err = database.InsertTicketIntoDB(*playedTicket)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	json.NewEncoder(w).Encode(playedTicket)
 	fmt.Println(playedTicket)
