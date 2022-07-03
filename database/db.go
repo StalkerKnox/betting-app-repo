@@ -2,37 +2,22 @@ package database
 
 import (
 	"betting-app/models"
-	"flag"
-
-	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
 // CONNECT TO MYSQL DB
-func ConnectDB() *sqlx.DB {
-	connection := flag.String("connection", "root:OvjAcbmOh4E@(localhost:3307)/betting_app?parseTime=true", "default connection")
-	flag.Parse()
-	db, err := sqlx.Connect("mysql", *connection)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	return db
-}
 
 // DEFINING GLOBAL VARIABLE DB
-var DB = ConnectDB()
+var DB *sqlx.DB
 
 func InsertOffersIntoDB(x models.GetOfferResponse) error {
 
 	for _, singleOffer := range x {
 		var checker models.Offer
-		err := DB.Get(&checker, "SELECT * FROM offers WHERE offer_id = ?", singleOffer.ID)
-		if err != nil {
-			return err
-		}
+		_ = DB.Get(&checker, "SELECT * FROM offers WHERE offer_id = ?", singleOffer.ID)
+
 		if checker.ID == singleOffer.ID {
 			continue
 		}
@@ -59,10 +44,8 @@ func InsertLeaguesIntoDB(x models.GetLeagueResponse) error {
 	var helper models.Help
 	for _, singleLeague := range x.Leagues {
 		var checker models.League
-		err := DB.Get(&checker, "SELECT * FROM leagues WHERE title = ?", singleLeague.Title)
-		if err != nil {
-			return err
-		}
+		_ = DB.Get(&checker, "SELECT * FROM leagues WHERE title = ?", singleLeague.Title)
+
 		if checker.Title == singleLeague.Title {
 			continue
 		}

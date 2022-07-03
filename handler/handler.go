@@ -19,10 +19,12 @@ func GetLeagues(w http.ResponseWriter, r *http.Request) {
 	getLeaguesFromDB, err := database.GetLeaguesFromDB()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	err = json.NewEncoder(w).Encode(getLeaguesFromDB)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -72,6 +74,7 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 	offer.ID = rand.Intn(10000000)
 	insertErr := database.InsertOfferIntoDB(offer)
 	if insertErr != nil {
+		fmt.Println(insertErr)
 		return
 	}
 
@@ -86,6 +89,7 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	ticket.RemainingBalance, err = database.GetBalanceFromDB(ticket)
 	if err != nil {
 		println(err)
+		return
 	}
 	if ticket.PaymentAmount > ticket.RemainingBalance {
 		w.WriteHeader(http.StatusBadRequest)
@@ -95,6 +99,7 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	playedTicket, err := database.GetRatesFromDB(ticket)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	if playedTicket.PrizeMoney > 10000 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -105,10 +110,12 @@ func AddNewTicket(w http.ResponseWriter, r *http.Request) {
 	err = database.UpdateBalance(*playedTicket)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	playedTicket, err = database.InsertTicketIntoDB(*playedTicket)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 	json.NewEncoder(w).Encode(playedTicket)
 	fmt.Println(playedTicket)

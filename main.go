@@ -5,11 +5,13 @@ import (
 	"betting-app/handler"
 	"betting-app/helper"
 	"betting-app/models"
+	"flag"
 	"log"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
@@ -35,9 +37,19 @@ func main() {
 
 	router := mux.NewRouter()
 
+	// Conncet to DB
+	var err error
+	connection := flag.String("connection", "root:OvjAcbmOh4E@(localhost:3306)/betting_app?parseTime=true", "default connection")
+	flag.Parse()
+	database.DB, err = sqlx.Connect("mysql", *connection)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	//Database operations
 	// database.ConnectDB()
-	err := database.InsertOffersIntoDB(offersSlice)
+	err = database.InsertOffersIntoDB(offersSlice)
 	if err != nil {
 		log.Fatal(err)
 	}
