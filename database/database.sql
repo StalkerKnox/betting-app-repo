@@ -4,7 +4,7 @@ CREATE TABLE offers (
     offer_id INT PRIMARY KEY,
     title VARCHAR(40),
     has_statistics BOOLEAN,
-    time varchar(30)
+    time DATETIME
 );
 
 CREATE TABLE rates (
@@ -12,7 +12,6 @@ CREATE TABLE rates (
     rate float,
     name VARCHAR(6)
 );
-
 
 CREATE TABLE leagues (
     id INT AUTO_INCREMENT PRIMARY KEY ,
@@ -31,7 +30,6 @@ CREATE TABLE types (
     elaboration_id INT,
     name VARCHAR(20)
 );
-ALTER TABLE types AUTO_INCREMENT = 100
 
 CREATE TABLE connect (
     elaboration_id INT,
@@ -40,12 +38,11 @@ CREATE TABLE connect (
 
 
 CREATE TABLE players (
-    first_name VARCHAR(20),
-    last_name VARCHAR(20),
+    user_name VARCHAR(20),
     balance INT
 );
 
-INSERT INTO players(first_name, last_name, balance) VALUES("Ante", "Antic", 124);
-INSERT INTO players(first_name, last_name, balance) VALUES("Pero", "Peric", 552);
-INSERT INTO players(first_name, last_name, balance) VALUES("Jelena", "Jelic", 1700);
-INSERT INTO players(first_name, last_name, balance) VALUES("Sime", "Simic", 70);
+INSERT INTO players(user_name, balance) VALUES("ante_95", 124);
+INSERT INTO players(user_name, balance) VALUES("mrnja_53", 552);
+INSERT INTO players(user_name, balance) VALUES("white_widow3", 1700);
+INSERT INTO players(user_name, balance) VALUES("mali_simun", 70);
