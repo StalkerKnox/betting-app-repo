@@ -49,7 +49,7 @@ type Rate struct {
 
 // type OffersFromDB []Offer
 
-// Ticket design
+// Ticket design schema
 type TikcetDesign struct {
 	ID               int           `db:"ticket_id"`
 	UserName         string        `json:"korisnicko_ime" db:"user_name"`

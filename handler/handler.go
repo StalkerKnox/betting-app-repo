@@ -28,7 +28,7 @@ func GetLeagues(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET offers / implemented just for checking POST method
+// GET offers
 func GetOffers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	getOffersFromDB, err := database.GetOffersFromDB()

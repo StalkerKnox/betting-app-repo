@@ -244,7 +244,7 @@ func GetBalanceFromDB(x models.TikcetDesign) (float64, error) {
 
 }
 
-// GET RATES FOR EVERY SINGLE PLAYED TYPE
+// GET RATES FOR EVERY SINGLE PLAYED TYPE BY USER
 func GetRatesFromDB(x models.TikcetDesign) (*models.TikcetDesign, error) {
 	var calculatorStorage []float64
 	var playOffer models.PlayedOffer

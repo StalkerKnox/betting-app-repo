@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-// Parsing JSON
+// Parsing JSON into structures
 func GetJSON(URL string, structure interface{}) error {
 	res, err := http.Get(URL)
 	if err != nil {

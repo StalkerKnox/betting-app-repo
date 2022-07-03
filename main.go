@@ -47,8 +47,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	//Database operations
-	// database.ConnectDB()
+	//Database operations - INSERT INTO DB
 	err = database.InsertOffersIntoDB(offersSlice)
 	if err != nil {
 		log.Fatal(err)
