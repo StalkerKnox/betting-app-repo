@@ -106,21 +106,21 @@ func InsertLeaguesIntoDB(x models.GetLeagueResponse) error {
 // GET OFFERS FROM DB
 func GetOffersFromDB() (*[]models.Offer, error) {
 	var getOffersFromDB []models.Offer
-	var singleOffer models.Offer
+	var oneOffer models.Offer
 	var singleRate models.Rate
 	rows, _ := DB.Queryx("SELECT number, tv_channel, offer_id, title, has_statistics, time FROM offers")
 	for rows.Next() {
-		err := rows.StructScan(&singleOffer)
-		getOffersFromDB = append(getOffersFromDB, singleOffer)
+		err := rows.StructScan(&oneOffer)
+		getOffersFromDB = append(getOffersFromDB, oneOffer)
 		if err != nil {
 			return nil, err
 		}
 
 	}
 
-	for i, singleoffer := range getOffersFromDB {
+	for i, singleOffer := range getOffersFromDB {
 
-		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleoffer.ID)
+		rows, _ := DB.Queryx("SELECT offer_id, rate, name FROM rates WHERE offer_id = ? ", singleOffer.ID)
 		for rows.Next() {
 
 			err := rows.StructScan(&singleRate)

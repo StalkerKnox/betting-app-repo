@@ -13,6 +13,7 @@ CREATE TABLE rates (
     name VARCHAR(6)
 );
 
+
 CREATE TABLE leagues (
     id INT AUTO_INCREMENT PRIMARY KEY ,
     title VARCHAR(40)
@@ -36,13 +37,29 @@ CREATE TABLE connect (
     offer_id INT
 );
 
-
 CREATE TABLE players (
-    user_name VARCHAR(20),
-    balance INT
+    user_name VARCHAR(20) PRIMARY KEY,
+    balance DECIMAL(6,2)
 );
 
 INSERT INTO players(user_name, balance) VALUES("ante_95", 124);
 INSERT INTO players(user_name, balance) VALUES("mrnja_53", 552);
-INSERT INTO players(user_name, balance) VALUES("white_widow3", 1700);
+INSERT INTO players(user_name, balance) VALUES("white_widow3", 1700.1);
 INSERT INTO players(user_name, balance) VALUES("mali_simun", 70);
+
+
+CREATE TABLE tickets (
+    ticket_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_name VARCHAR(20),
+    payment_amount DECIMAL(6,2),
+    prize_money DECIMAL(6,2)
+);
+
+ALTER TABLE tickets AUTO_INCREMENT = 1000;
+
+CREATE TABLE played_offers (
+    ticket_id INT,
+    offer_id INT,
+    name VARCHAR(6),
+    rate VARCHAR(20)
+);
