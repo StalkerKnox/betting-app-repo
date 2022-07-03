@@ -45,57 +45,29 @@ type Rate struct {
 	Name    string  `json:"naziv" db:"name" validate:"required"`
 }
 
-// Defining structure variables to store parsed JSON
-var LeaguesStruct GetLeagueResponse
-var Offers GetOfferResponse
-var OneOffer Offer
-
 //DATABASE
 
-// defining variables to store OFFER BY ID
-var OfferFromDB Offer
-var RateFromDB Rate
+// type OffersFromDB []Offer
 
-//defining variables to store OFFERS from DB
-
-type OffersFromDB []Offer
-
-var SingleOffer Offer
-
-var SingleRate Rate
-var GetOffersFromDB []Offer
-
-//definig variables to store LEAGUES form DB
-type Help struct {
-	OfferID       int64 `db:"offer_id"`
-	ElaborationID int64 `db:"elaboration_id"`
-}
-
-var Helper Help
-var GetLeaguesFromDB GetLeagueResponse
-var LeaguesDB []League
-var LeagueDB League
-var ElaborationDB Elaboration
-var TypeDB Type
-var OfferStruct Help
-
+// Ticket design schema
 type TikcetDesign struct {
+	ID               int           `db:"ticket_id"`
 	UserName         string        `json:"korisnicko_ime" db:"user_name"`
-	PaymentAmount    float64       `json:"uplaceni_iznos" `
+	PaymentAmount    float64       `json:"uplaceni_iznos" db:"payment_amount"`
 	PlayedOffers     []PlayedOffer `json:"lista_odigranih_ponuda"`
-	PrizeMoney       float64       `json:"moguci_dobitak"`
+	PrizeMoney       float64       `json:"moguci_dobitak" db:"prize_money"`
 	RemainingBalance float64       `json:"-" db:"balance"`
 }
 
 type PlayedOffer struct {
-	ID   int     `json:"id_ponude" db:"offer_id"`
-	Name string  `json:"odigrani_tip" db:"name"`
-	Rate float64 `json:"-" db:"rate"`
+	ID       int     `json:"id_ponude" db:"offer_id"`
+	TicketID int     `json:"-" db:"ticket_id"`
+	Name     string  `json:"odigrani_tip" db:"name"`
+	Rate     float64 `json:"-" db:"rate"`
 }
 
-var Ticket TikcetDesign
-var PlayOffer PlayedOffer
-
-type MultiOfferInd []PlayedOffer
-
-var CalculatorStorage []float64
+// Helper struct for DB operations
+type Help struct {
+	OfferID       int64 `db:"offer_id"`
+	ElaborationID int64 `db:"elaboration_id"`
+}

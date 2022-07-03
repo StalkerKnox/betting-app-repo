@@ -16,25 +16,27 @@ import (
 // GET leagues
 func GetLeagues(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	err := database.GetLeaguesFromDB()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	err = json.NewEncoder(w).Encode(models.GetLeaguesFromDB)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-// GET offers / implemented just for checking POST method
-func GetOffers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := database.GetOffersFromDB()
+	getLeaguesFromDB, err := database.GetLeaguesFromDB()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(models.GetOffersFromDB)
+	err = json.NewEncoder(w).Encode(getLeaguesFromDB)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// GET offers
+func GetOffers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	getOffersFromDB, err := database.GetOffersFromDB()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(getOffersFromDB)
 }
 
 // GET offers by ID
@@ -47,19 +49,20 @@ func GetOfferbyID(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Bad request"))
 		return
 	}
-	dataErr := database.GetOfferFromDB(id)
+	offerFromDB, dataErr := database.GetOfferFromDB(id)
 	if dataErr != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Offer does not exists"))
 		return
 	}
-	json.NewEncoder(w).Encode(models.OfferFromDB)
+	json.NewEncoder(w).Encode(offerFromDB)
 
 }
 
 // ADD new offer (POST method)
 func AddNewOffer(w http.ResponseWriter, r *http.Request) {
-	offer := models.OneOffer
+
+	var offer models.Offer
 	json.NewDecoder(r.Body).Decode(&offer)
 	validate := validator.New()
 	err := validate.Struct(offer)
@@ -71,6 +74,7 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 	offer.ID = rand.Intn(10000000)
 	insertErr := database.InsertOfferIntoDB(offer)
 	if insertErr != nil {
+		fmt.Println(insertErr)
 		return
 	}
 
@@ -79,23 +83,41 @@ func AddNewOffer(w http.ResponseWriter, r *http.Request) {
 
 // Simulate ticket (POST method)
 func AddNewTicket(w http.ResponseWriter, r *http.Request) {
-
-	json.NewDecoder(r.Body).Decode(&models.Ticket)
-	_ = database.GetBalanceFromDB()
-	if models.Ticket.PaymentAmount > models.Ticket.RemainingBalance {
+	var ticket models.TikcetDesign
+	json.NewDecoder(r.Body).Decode(&ticket)
+	var err error
+	ticket.RemainingBalance, err = database.GetBalanceFromDB(ticket)
+	if err != nil {
+		println(err)
+		return
+	}
+	if ticket.PaymentAmount > ticket.RemainingBalance {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Sorry, but your account balance is not sufficient for this payment amaount."))
 		return
 	}
-	_ = database.GetRatesFromDB()
-	if models.Ticket.PrizeMoney > 10000 {
+	playedTicket, err := database.GetRatesFromDB(ticket)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if playedTicket.PrizeMoney > 10000 {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Sorry, but the prize money exceeds 10,000 "))
 		return
 	}
 
-	_ = database.UpdateBalance()
-	json.NewEncoder(w).Encode(models.Ticket)
-	fmt.Println(models.Ticket)
+	err = database.UpdateBalance(*playedTicket)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	playedTicket, err = database.InsertTicketIntoDB(*playedTicket)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	json.NewEncoder(w).Encode(playedTicket)
+	fmt.Println(playedTicket)
 
 }
